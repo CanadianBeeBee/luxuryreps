@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Search, Heart, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { collection, query, getDocs } from "firebase/firestore"
+import { collection, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 // Définir le type de produit

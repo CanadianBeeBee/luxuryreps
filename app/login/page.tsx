@@ -6,7 +6,6 @@ import { auth } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Navigation } from "@/components/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")

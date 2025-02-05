@@ -14,7 +14,7 @@ interface ProductCardProps {
   category: string
 }
 
-export function ProductCard({ id, name, price, imageUrl, category }: ProductCardProps) {
+export function ProductCard({ id, name, price, imageUrl }: ProductCardProps) {
   const { favorites, toggleFavorite } = useFavorites()
   const isFavorite = favorites.includes(id)
 

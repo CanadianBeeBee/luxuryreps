@@ -5,14 +5,13 @@ import { Navigation } from "@/components/navigation"
 import { ProductCard } from "@/components/product-card"
 import { useFavorites } from "@/hooks/use-favorites"
 
-// Mock data for products (in a real app, you'd fetch this from an API)
 const allProducts = [
   {
     id: "1",
     name: "Ralph Lauren Shiny Puffer Jacket Black",
     price: 78.0,
     imageUrl: "/placeholder.svg?height=400&width=400",
-  },
+  },    
   {
     id: "2",
     name: "Polo Ralph Lauren Zip Hoodie Black Red",
