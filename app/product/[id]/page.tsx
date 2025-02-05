@@ -8,7 +8,7 @@ import { db } from "@/lib/firebase"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
+import { Minus, Plus } from "lucide-react"
 
 interface Product {
   id: string
