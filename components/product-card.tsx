@@ -11,7 +11,7 @@ interface ProductCardProps {
   name: string;
   price: number;
   imageUrl: string;
-  category: string; // Propriété obligatoire
+  category?: string; // Propriété obligatoire
 }
 
 
