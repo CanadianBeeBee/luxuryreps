@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { useFavorites } from "@/hooks/use-favorites"
 
 interface ProductCardProps {
-  id: string
-  name: string
-  price: number
-  imageUrl: string
-  category: string
+  id: string;
+  name: string;
+  price: number;
+  imageUrl: string;
+  category: string; // Propriété obligatoire
 }
+
 
 export function ProductCard({ id, name, price, imageUrl }: ProductCardProps) {
   const { favorites, toggleFavorite } = useFavorites()
