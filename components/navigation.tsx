@@ -25,7 +25,7 @@ export function Navigation() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [showFullResults, setShowFullResults] = useState(false)
   const [allProducts, setAllProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>([]) // Update the categories state initialization
   const [user, setUser] = useState<{ email: string | null } | null>(null)
   const router = useRouter()
 
@@ -33,13 +33,22 @@ export function Navigation() {
     const fetchProductsAndCategories = async () => {
       try {
         const productsSnapshot = await getDocs(collection(db, "products"))
-        const productsData = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Product)
+        const productsData = productsSnapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            }) as Product,
+        )
         setAllProducts(productsData)
 
-        const uniqueCategories = Array.from(new Set(productsData.map((product) => product.category)))
+        const uniqueCategories = Array.from(
+          new Set(productsData.map((product) => product.category).filter((category): category is string => !!category)),
+        ).sort()
         setCategories(uniqueCategories)
       } catch (error) {
         console.error("Error fetching products and categories:", error)
+        setCategories([]) // Add error handling for the fetchProductsAndCategories function
       }
     }
 
@@ -206,22 +215,23 @@ export function Navigation() {
             </div>
           </div>
 
-          {isMenuOpen && (
-            <div className="py-4 border-t border-border/40">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {categories.map((item) => (
-                  <Link
-                    key={item}
-                    href={`/${item.toLowerCase()}`}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item}
-                  </Link>
-                ))}
+          {isMenuOpen &&
+            categories.length > 0 && ( // Update the categories mapping section
+              <div className="py-4 border-t border-border/40">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {categories.map((item) => (
+                    <Link
+                      key={item}
+                      href={`/${item.toLowerCase()}`}
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {item}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </nav>
 
@@ -230,7 +240,7 @@ export function Navigation() {
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">
-                Résultats de recherche pour {searchQuery} ({searchResults.length})
+                Résultats de recherche pour "{searchQuery}" ({searchResults.length})
               </h2>
               <Button variant="ghost" onClick={() => setShowFullResults(false)}>
                 <X className="h-4 w-4 mr-2" />
@@ -251,7 +261,7 @@ export function Navigation() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Aucun résultat trouvé pour {searchQuery}</p>
+              <p className="text-muted-foreground">Aucun résultat trouvé pour "{searchQuery}"</p>
             )}
           </div>
         </div>
