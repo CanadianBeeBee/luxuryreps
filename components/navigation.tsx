@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Search, Heart, Menu, X, User, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { collection, getDocs } from "firebase/firestore"
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 import { db, auth } from "@/lib/firebase"
 
@@ -45,14 +45,30 @@ export function Navigation() {
         const uniqueCategories = Array.from(
           new Set(productsData.map((product) => product.category).filter((category): category is string => !!category)),
         ).sort()
-        setCategories(uniqueCategories)
+        //setCategories(uniqueCategories)
       } catch (error) {
         console.error("Error fetching products and categories:", error)
-        setCategories([]) // Add error handling for the fetchProductsAndCategories function
+        //setCategories([]) // Add error handling for the fetchProductsAndCategories function
       }
     }
 
     fetchProductsAndCategories()
+  }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const categoriesQuery = query(collection(db, "categories"), orderBy("name"))
+      const categoriesSnapshot = await getDocs(categoriesQuery)
+      const categoriesData = categoriesSnapshot.docs.map((doc) => doc.data().name as string)
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+      setCategories([])
+    }
+  }
+
+  useEffect(() => {
+    fetchCategories()
   }, [])
 
   useEffect(() => {
@@ -215,23 +231,22 @@ export function Navigation() {
             </div>
           </div>
 
-          {isMenuOpen &&
-            categories.length > 0 && ( // Update the categories mapping section
-              <div className="py-4 border-t border-border/40">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {categories.map((item) => (
-                    <Link
-                      key={item}
-                      href={`/${item.toLowerCase()}`}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {item}
-                    </Link>
-                  ))}
-                </div>
+          {isMenuOpen && (
+            <div className="py-4 border-t border-border/40">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {categories.map((item) => (
+                  <Link
+                    key={item}
+                    href={`/${item.toLowerCase()}`}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item}
+                  </Link>
+                ))}
               </div>
-            )}
+            </div>
+          )}
         </div>
       </nav>
 
@@ -240,7 +255,7 @@ export function Navigation() {
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">
-                Résultats de recherche pour {searchQuery} ({searchResults.length})
+                Résultats de recherche pour "{searchQuery}" ({searchResults.length})
               </h2>
               <Button variant="ghost" onClick={() => setShowFullResults(false)}>
                 <X className="h-4 w-4 mr-2" />
@@ -261,7 +276,7 @@ export function Navigation() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Aucun résultat trouvé pour {searchQuery}</p>
+              <p className="text-muted-foreground">Aucun résultat trouvé pour "{searchQuery}"</p>
             )}
           </div>
         </div>
