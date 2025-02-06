@@ -245,7 +245,7 @@ export function Navigation() {
       </nav>
 
       {showFullResults && (
-        <div className="border-t border-t border-border/40">
+        <div className=" border-t border-border/40">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">
