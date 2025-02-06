@@ -9,6 +9,8 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+const isAdmin = (email: string) => email === "admin@admin.com"
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,7 +21,11 @@ export default function LoginPage() {
     e.preventDefault()
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      router.push("/client")
+      if (isAdmin(email)) {
+        router.push("/admin/add-product")
+      } else {
+        router.push("/client")
+      }
     } catch (error) {
       setError("Failed to log in. Please check your credentials.")
       console.error(error)

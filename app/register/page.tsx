@@ -31,6 +31,7 @@ export default function RegisterPage() {
         birthDate,
         address,
         favorites: [],
+        role: "user", // Ensure all new registrations are regular users
       })
 
       router.push("/client")

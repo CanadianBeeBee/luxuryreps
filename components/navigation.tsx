@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, Heart, Menu, X, User } from "lucide-react"
+import { Search, Heart, Menu, X, User, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { collection, getDocs } from "firebase/firestore"
@@ -14,8 +14,9 @@ interface Product {
   id: string
   name: string
   category: string
-  // Add other properties as needed
 }
+
+const isAdmin = (email: string | null) => email === "admin@admin.com"
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -163,11 +164,31 @@ export function Navigation() {
               </div>
               {user ? (
                 <>
-                  <Link href="/client">
-                    <Button variant="ghost" size="icon">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </Link>
+                  {isAdmin(user.email) ? (
+                    <Link href="/admin/add-product">
+                      <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/client">
+                        <Button variant="ghost" size="icon">
+                          <User className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Link href="/favorites">
+                        <Button variant="ghost" size="icon">
+                          <Heart className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Link href="/cart">
+                        <Button variant="ghost" size="icon">
+                          <ShoppingCart className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                   <Button variant="ghost" onClick={handleSignOut}>
                     Sign Out
                   </Button>
@@ -182,11 +203,6 @@ export function Navigation() {
                   </Link>
                 </>
               )}
-              <Link href="/favorites">
-                <Button variant="ghost" size="icon">
-                  <Heart className="h-5 w-5" />
-                </Button>
-              </Link>
             </div>
           </div>
 

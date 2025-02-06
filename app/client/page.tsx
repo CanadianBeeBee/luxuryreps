@@ -16,6 +16,7 @@ interface UserData {
   birthDate: string
   address: string
   favorites: string[]
+  role: string
 }
 
 interface Product {
@@ -25,6 +26,8 @@ interface Product {
   imageUrl: string
   category: string
 }
+
+const isAdmin = (email: string) => email === "admin@admin.com"
 
 export default function ClientPage() {
   const [user, setUser] = useState<any>(null)
@@ -37,6 +40,10 @@ export default function ClientPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        if (isAdmin(user.email || "")) {
+          router.push("/admin/add-product")
+          return
+        }
         setUser(user)
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
@@ -65,7 +72,12 @@ export default function ClientPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (user && userData) {
-      await updateDoc(doc(db, "users", user.uid), userData)
+      const updateData = {
+        name: userData.name,
+        birthDate: userData.birthDate,
+        address: userData.address,
+      }
+      await updateDoc(doc(db, "users", user.uid), updateData)
       setEditing(false)
     }
   }
