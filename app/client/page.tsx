@@ -107,7 +107,7 @@ export default function OrdersPage() {
         <div className="w-3/4 p-6">
           <h1 className="text-3xl font-bold mb-8">Vos Commandes</h1>
           {orders.length === 0 ? (
-            <p>Vous n'avez pas encore de commandes.</p>
+            <p>Vous n avez pas encore de commandes.</p>
           ) : (
             <div className="space-y-6">
               {orders.map((order) => (
