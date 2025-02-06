@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
+import Image from "next/image"
 
 const categories = [
   "electronic",
@@ -214,9 +215,11 @@ export default function AddProductPage() {
               </label>
               <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
               {imagePreview && (
-                <img
+                <Image
                   src={imagePreview || "/placeholder.svg"}
                   alt="Preview"
+                  width={200}
+                  height={200}
                   className="mt-2 max-w-full h-auto max-h-48 object-contain"
                 />
               )}

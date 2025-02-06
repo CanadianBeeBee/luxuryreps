@@ -26,7 +26,7 @@ export function Navigation() {
   const [showFullResults, setShowFullResults] = useState(false)
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ email: string | null } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -230,7 +230,7 @@ export function Navigation() {
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">
-                Résultats de recherche pour &quot;{searchQuery}&quot; ({searchResults.length})
+                Résultats de recherche pour "{searchQuery}" ({searchResults.length})
               </h2>
               <Button variant="ghost" onClick={() => setShowFullResults(false)}>
                 <X className="h-4 w-4 mr-2" />
@@ -251,7 +251,7 @@ export function Navigation() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Aucun résultat trouvé pour &quot;{searchQuery}&quot;</p>
+              <p className="text-muted-foreground">Aucun résultat trouvé pour "{searchQuery}"</p>
             )}
           </div>
         </div>

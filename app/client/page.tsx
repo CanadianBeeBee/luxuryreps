@@ -30,7 +30,7 @@ interface Product {
 const isAdmin = (email: string) => email === "admin@admin.com"
 
 export default function ClientPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -156,7 +156,7 @@ export default function ClientPage() {
           <div>
             <h2 className="text-2xl font-semibold mb-4">Your Favorites</h2>
             {favoriteProducts.length === 0 ? (
-              <p>You haven&quot;t added any favorites yet.</p>
+              <p>You haven't added any favorites yet.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {favoriteProducts.map((product) => (
