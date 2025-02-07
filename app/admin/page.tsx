@@ -22,7 +22,7 @@ interface Ticket {
 const isAdmin = (email: string) => email === "admin@admin.com"
 
 export default function AdminPage() {
-  const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
+  const [, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
