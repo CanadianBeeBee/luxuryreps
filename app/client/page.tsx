@@ -57,36 +57,53 @@ export default function ClientPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        if (isAdmin(user.email || "")) {
-          router.push("/admin/add-product")
-          return
+      try {
+        if (user) {
+          if (isAdmin(user.email || "")) {
+            router.push("/admin/add-product")
+            return
+          }
+          setUser(user)
+          const userDoc = await getDoc(doc(db, "users", user.uid))
+          if (userDoc.exists()) {
+            const data = userDoc.data() as UserData
+            setUserData(data)
+            setNewAddress(data.address || { street: "", number: "", postalCode: "", city: "" })
+            fetchFavoriteProducts(data.favorites || [])
+          } else {
+            console.error("User document does not exist")
+          }
+        } else {
+          router.push("/login")
         }
-        setUser(user)
-        const userDoc = await getDoc(doc(db, "users", user.uid))
-        if (userDoc.exists()) {
-          const data = userDoc.data() as UserData
-          setUserData(data)
-          setNewAddress(data.address)
-          fetchFavoriteProducts(data.favorites)
-        }
-      } else {
-        router.push("/login")
+      } catch (error) {
+        console.error("Error in auth state change:", error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
   }, [router])
 
   const fetchFavoriteProducts = async (favoriteIds: string[]) => {
-    const products = await Promise.all(
-      favoriteIds.map(async (id) => {
-        const productDoc = await getDoc(doc(db, "products", id))
-        return { id, ...productDoc.data() } as Product
-      }),
-    )
-    setFavoriteProducts(products)
+    try {
+      const products = await Promise.all(
+        favoriteIds.map(async (id) => {
+          const productDoc = await getDoc(doc(db, "products", id))
+          if (productDoc.exists()) {
+            return { id, ...productDoc.data() } as Product
+          } else {
+            console.warn(`Product with id ${id} not found`)
+            return null
+          }
+        }),
+      )
+      setFavoriteProducts(products.filter((product): product is Product => product !== null))
+    } catch (error) {
+      console.error("Error fetching favorite products:", error)
+      setFavoriteProducts([])
+    }
   }
 
   const handleUpdateAddress = async () => {
@@ -216,17 +233,21 @@ export default function ClientPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <p>
-                  {userData.address.number} {userData.address.street}
-                </p>
-                <p>
-                  {userData.address.postalCode} {userData.address.city}
-                </p>
-                <Button variant="ghost" onClick={() => setEditingAddress(true)}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Modifier
-                </Button>
+              <div>
+                {userData.address && (
+                  <div className="space-y-2">
+                    <p>
+                      {userData.address.number} {userData.address.street}
+                    </p>
+                    <p>
+                      {userData.address.postalCode} {userData.address.city}
+                    </p>
+                    <Button variant="ghost" onClick={() => setEditingAddress(true)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Modifier
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
