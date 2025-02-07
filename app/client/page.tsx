@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import Link from "next/link"
 import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
@@ -12,17 +11,12 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ProductCard } from "@/components/product-card"
-import { Pencil, Save, Package, Truck, HeadphonesIcon } from "lucide-react"
+import { Pencil, Save } from "lucide-react"
 
 interface UserData {
   name: string
   birthDate: string
-  address: {
-    street: string
-    number: string
-    postalCode: string
-    city: string
-  }
+  address: string
   favorites: string[]
   role: string
 }
@@ -43,12 +37,7 @@ export default function ClientPage() {
   const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [editingAddress, setEditingAddress] = useState(false)
-  const [newAddress, setNewAddress] = useState({
-    street: "",
-    number: "",
-    postalCode: "",
-    city: "",
-  })
+  const [newAddress, setNewAddress] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -112,23 +101,9 @@ export default function ClientPage() {
           </div>
           <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
           <p className="text-muted-foreground mb-4">{user.email}</p>
-          <p className="text-sm mb-6">
+          <p className="text-sm">
             <strong>Date de naissance:</strong> {userData.birthDate}
           </p>
-          <nav className="w-full">
-            <Link href="/orders" className="flex items-center text-primary hover:text-primary/80 mb-3">
-              <Package className="w-5 h-5 mr-2" />
-              Commandes
-            </Link>
-            <Link href="/delivery-tracking" className="flex items-center text-primary hover:text-primary/80 mb-3">
-              <Truck className="w-5 h-5 mr-2" />
-              Suivis de Livraison
-            </Link>
-            <Link href="/support" className="flex items-center text-primary hover:text-primary/80">
-              <HeadphonesIcon className="w-5 h-5 mr-2" />
-              Support
-            </Link>
-          </nav>
         </div>
 
         {/* Main Content */}
@@ -139,48 +114,16 @@ export default function ClientPage() {
           <div className="bg-secondary/30 rounded-lg p-6 mb-8">
             <h3 className="text-xl font-semibold mb-4">Adresse de livraison</h3>
             {editingAddress ? (
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Input
-                    value={newAddress.number}
-                    onChange={(e) => setNewAddress({ ...newAddress, number: e.target.value })}
-                    placeholder="N°"
-                    className="w-1/4"
-                  />
-                  <Input
-                    value={newAddress.street}
-                    onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                    placeholder="Nom de la rue"
-                    className="flex-grow"
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <Input
-                    value={newAddress.postalCode}
-                    onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                    placeholder="Code postal"
-                    className="w-1/3"
-                  />
-                  <Input
-                    value={newAddress.city}
-                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                    placeholder="Ville"
-                    className="flex-grow"
-                  />
-                </div>
+              <div className="flex items-center">
+                <Input value={newAddress} onChange={(e) => setNewAddress(e.target.value)} className="flex-grow mr-2" />
                 <Button onClick={handleUpdateAddress}>
                   <Save className="w-4 h-4 mr-2" />
                   Sauvegarder
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <p>
-                  {userData.address.number} {userData.address.street}
-                </p>
-                <p>
-                  {userData.address.postalCode} {userData.address.city}
-                </p>
+              <div className="flex items-center justify-between">
+                <p>{userData.address}</p>
                 <Button variant="ghost" onClick={() => setEditingAddress(true)}>
                   <Pencil className="w-4 h-4 mr-2" />
                   Modifier
