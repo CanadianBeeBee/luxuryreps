@@ -26,13 +26,19 @@ export default function SupportPage() {
   const [message, setMessage] = useState("")
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null) // Added error state
   const router = useRouter()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user)
-        await fetchTickets(user.uid)
+        try {
+          await fetchTickets(user.uid)
+        } catch (error) {
+          console.error("Error fetching tickets:", error)
+          setError("Impossible de charger les tickets. Veuillez réessayer plus tard.")
+        }
       } else {
         router.push("/login")
       }
@@ -43,13 +49,18 @@ export default function SupportPage() {
   }, [router])
 
   const fetchTickets = async (userId: string) => {
-    const q = query(collection(db, "tickets"), where("userId", "==", userId), orderBy("createdAt", "desc"))
-    const querySnapshot = await getDocs(q)
-    const fetchedTickets = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Ticket[]
-    setTickets(fetchedTickets)
+    try {
+      const q = query(collection(db, "tickets"), where("userId", "==", userId), orderBy("createdAt", "desc"))
+      const querySnapshot = await getDocs(q)
+      const fetchedTickets = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Ticket[]
+      setTickets(fetchedTickets)
+    } catch (error) {
+      console.error("Error fetching tickets:", error)
+      setTickets([])
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +84,15 @@ export default function SupportPage() {
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Chargement...</div>
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>
+  }
+
+  if (!user) {
+    return <div>Veuillez vous connecter pour accéder à cette page.</div>
   }
 
   return (
