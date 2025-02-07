@@ -29,10 +29,7 @@ interface Ticket {
   lastAdminResponse?: Timestamp
 }
 
-export default function TicketPage({
-  params,
-  searchParams,
-}: { params: { id: string } } & { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default function TicketPage({ params }: { params: { id: string } }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [newMessage, setNewMessage] = useState("")
@@ -68,24 +65,22 @@ export default function TicketPage({
     }
   }
 
-  const markMessagesAsRead = async () => {
-    if (!ticket) return
-
-    const updatedMessages = ticket.messages.map((message) => ({
-      ...message,
-      isRead: true,
-    }))
-
-    await updateDoc(doc(db, "tickets", ticket.id), {
-      messages: updatedMessages,
-    })
-  }
-
   useEffect(() => {
     if (ticket) {
+      const markMessagesAsRead = async () => {
+        const updatedMessages = ticket.messages.map((message) => ({
+          ...message,
+          isRead: true,
+        }))
+
+        await updateDoc(doc(db, "tickets", ticket.id), {
+          messages: updatedMessages,
+        })
+      }
+
       markMessagesAsRead()
     }
-  }, [ticket, markMessagesAsRead]) // Added markMessagesAsRead to dependencies
+  }, [ticket])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

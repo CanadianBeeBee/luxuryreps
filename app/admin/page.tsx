@@ -136,7 +136,6 @@ export default function AdminPage() {
                 <TicketList
                   tickets={tickets.filter((t) => t.status === "open")}
                   onSelectTicket={setSelectedTicket}
-                  onCloseTicket={handleCloseTicket}
                   selectedTicketId={selectedTicket?.id}
                   getUnreadMessagesCount={getUnreadMessagesCount}
                 />
@@ -214,18 +213,11 @@ export default function AdminPage() {
 interface TicketListProps {
   tickets: Ticket[]
   onSelectTicket: (ticket: Ticket) => void
-  onCloseTicket?: (ticketId: string) => void
   selectedTicketId?: string
   getUnreadMessagesCount: (ticket: Ticket) => number
 }
 
-function TicketList({
-  tickets,
-  onSelectTicket,
-  onCloseTicket,
-  selectedTicketId,
-  getUnreadMessagesCount,
-}: TicketListProps) {
+function TicketList({ tickets, onSelectTicket, selectedTicketId, getUnreadMessagesCount }: TicketListProps) {
   return (
     <div className="space-y-4">
       {tickets.map((ticket) => (
