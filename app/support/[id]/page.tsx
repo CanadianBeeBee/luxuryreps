@@ -92,7 +92,7 @@ export default function TicketPage({ params }: { params: { id: string } }) {
   }
 
   if (!user || !ticket) {
-    return <div>Ticket non trouvé ou vous n'êtes pas autorisé à le voir.</div>
+    return <div>Ticket non trouvé ou vous n êtes pas autorisé à le voir.</div>
   }
 
   return (
