@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
 import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
@@ -10,11 +12,17 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ProductCard } from "@/components/product-card"
+import { Pencil, Save, Package, Truck, HeadphonesIcon } from "lucide-react"
 
 interface UserData {
   name: string
   birthDate: string
-  address: string
+  address: {
+    street: string
+    number: string
+    postalCode: string
+    city: string
+  }
   favorites: string[]
   role: string
 }
@@ -30,11 +38,17 @@ interface Product {
 const isAdmin = (email: string) => email === "admin@admin.com"
 
 export default function ClientPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
+  const [editingAddress, setEditingAddress] = useState(false)
+  const [newAddress, setNewAddress] = useState({
+    street: "",
+    number: "",
+    postalCode: "",
+    city: "",
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -47,8 +61,10 @@ export default function ClientPage() {
         setUser(user)
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
-          setUserData(userDoc.data() as UserData)
-          fetchFavoriteProducts(userDoc.data().favorites)
+          const data = userDoc.data() as UserData
+          setUserData(data)
+          setNewAddress(data.address)
+          fetchFavoriteProducts(data.favorites)
         }
       } else {
         router.push("/login")
@@ -69,16 +85,11 @@ export default function ClientPage() {
     setFavoriteProducts(products)
   }
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleUpdateAddress = async () => {
     if (user && userData) {
-      const updateData = {
-        name: userData.name,
-        birthDate: userData.birthDate,
-        address: userData.address,
-      }
-      await updateDoc(doc(db, "users", user.uid), updateData)
-      setEditing(false)
+      await updateDoc(doc(db, "users", user.uid), { address: newAddress })
+      setUserData({ ...userData, address: newAddress })
+      setEditingAddress(false)
     }
   }
 
@@ -93,72 +104,98 @@ export default function ClientPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Welcome, {userData.name}</h1>
+      <main className="flex-grow flex">
+        {/* Sidebar */}
+        <div className="w-1/4 bg-secondary/50 p-6 flex flex-col items-center">
+          <div className="w-32 h-32 rounded-full bg-muted mb-4 overflow-hidden">
+            <Image src="/placeholder.svg" alt="Profile" width={128} height={128} className="object-cover" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
+          <p className="text-muted-foreground mb-4">{user.email}</p>
+          <p className="text-sm mb-6">
+            <strong>Date de naissance:</strong> {userData.birthDate}
+          </p>
+          <nav className="w-full">
+            <Link href="/orders" className="flex items-center text-primary hover:text-primary/80 mb-3">
+              <Package className="w-5 h-5 mr-2" />
+              Commandes
+            </Link>
+            <Link href="/delivery-tracking" className="flex items-center text-primary hover:text-primary/80 mb-3">
+              <Truck className="w-5 h-5 mr-2" />
+              Suivis de Livraison
+            </Link>
+            <Link href="/support" className="flex items-center text-primary hover:text-primary/80">
+              <HeadphonesIcon className="w-5 h-5 mr-2" />
+              Support
+            </Link>
+          </nav>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Your Profile</h2>
-            {editing ? (
-              <form onSubmit={handleUpdate} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium mb-1">
-                    Name
-                  </label>
-                  <Input
-                    id="name"
-                    value={userData.name}
-                    onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="birthDate" className="block text-sm font-medium mb-1">
-                    Birth Date
-                  </label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={userData.birthDate}
-                    onChange={(e) => setUserData({ ...userData, birthDate: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium mb-1">
-                    Delivery Address
-                  </label>
-                  <Input
-                    id="address"
-                    value={userData.address}
-                    onChange={(e) => setUserData({ ...userData, address: e.target.value })}
-                  />
-                </div>
-                <Button type="submit">Save Changes</Button>
-                <Button type="button" variant="outline" onClick={() => setEditing(false)} className="ml-2">
-                  Cancel
-                </Button>
-              </form>
-            ) : (
+        {/* Main Content */}
+        <div className="w-3/4 p-6">
+          <h1 className="text-3xl font-bold mb-8">Votre Profil</h1>
+
+          {/* Address Section */}
+          <div className="bg-secondary/30 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-semibold mb-4">Adresse de livraison</h3>
+            {editingAddress ? (
               <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Input
+                    value={newAddress.number}
+                    onChange={(e) => setNewAddress({ ...newAddress, number: e.target.value })}
+                    placeholder="N°"
+                    className="w-1/4"
+                  />
+                  <Input
+                    value={newAddress.street}
+                    onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                    placeholder="Nom de la rue"
+                    className="flex-grow"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <Input
+                    value={newAddress.postalCode}
+                    onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+                    placeholder="Code postal"
+                    className="w-1/3"
+                  />
+                  <Input
+                    value={newAddress.city}
+                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                    placeholder="Ville"
+                    className="flex-grow"
+                  />
+                </div>
+                <Button onClick={handleUpdateAddress}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Sauvegarder
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
                 <p>
-                  <strong>Name:</strong> {userData.name}
+                  {userData.address.number} {userData.address.street}
                 </p>
                 <p>
-                  <strong>Birth Date:</strong> {userData.birthDate}
+                  {userData.address.postalCode} {userData.address.city}
                 </p>
-                <p>
-                  <strong>Delivery Address:</strong> {userData.address}
-                </p>
-                <Button onClick={() => setEditing(true)}>Edit Profile</Button>
+                <Button variant="ghost" onClick={() => setEditingAddress(true)}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Modifier
+                </Button>
               </div>
             )}
           </div>
 
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Your Favorites</h2>
+          {/* Favorites Section */}
+          <div className="bg-secondary/30 rounded-lg p-6">
+            <h3 className="text-xl font-semibold mb-4">Vos Favoris</h3>
             {favoriteProducts.length === 0 ? (
-              <p>You haven&quot;t added any favorites yet.</p>
+              <p>Vous n'avez pas encore ajouté de favoris.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
