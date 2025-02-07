@@ -105,7 +105,7 @@ export default function SupportPage() {
           <div>
             <h2 className="text-2xl font-semibold mb-4">Vos tickets</h2>
             {tickets.length === 0 ? (
-              <p>Vous n'avez pas encore de tickets.</p>
+              <p>Vous n avez pas encore de tickets.</p>
             ) : (
               <ul className="space-y-4">
                 {tickets.map((ticket) => (
