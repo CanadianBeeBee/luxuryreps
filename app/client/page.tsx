@@ -108,7 +108,7 @@ export default function ClientPage() {
         {/* Sidebar */}
         <div className="w-1/4 bg-secondary/50 p-6 flex flex-col items-center">
           <div className="w-32 h-32 rounded-full bg-muted mb-4 overflow-hidden">
-            <Image src="/placeholder.svg" alt="Profile" width={128} height={128} className="object-cover" />
+            <Image src="/default-avatar.png" alt="Profile" width={128} height={128} className="object-cover" />
           </div>
           <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
           <p className="text-muted-foreground mb-4">{user.email}</p>
