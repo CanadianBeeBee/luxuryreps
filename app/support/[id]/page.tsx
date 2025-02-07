@@ -16,6 +16,7 @@ interface Message {
   content: string
   createdAt: Timestamp
   isAdmin: boolean
+  isRead: boolean
 }
 
 interface Ticket {
@@ -25,11 +26,12 @@ interface Ticket {
   createdAt: Timestamp
   userId: string
   messages: Message[]
+  lastAdminResponse?: Timestamp
 }
 
 export default function TicketPage({
   params,
-  
+  searchParams,
 }: { params: { id: string } } & { searchParams: { [key: string]: string | string[] | undefined } }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [ticket, setTicket] = useState<Ticket | null>(null)
@@ -66,6 +68,25 @@ export default function TicketPage({
     }
   }
 
+  const markMessagesAsRead = async () => {
+    if (!ticket) return
+
+    const updatedMessages = ticket.messages.map((message) => ({
+      ...message,
+      isRead: true,
+    }))
+
+    await updateDoc(doc(db, "tickets", ticket.id), {
+      messages: updatedMessages,
+    })
+  }
+
+  useEffect(() => {
+    if (ticket) {
+      markMessagesAsRead()
+    }
+  }, [ticket, markMessagesAsRead]) // Added markMessagesAsRead to dependencies
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user || !ticket) return
@@ -77,6 +98,7 @@ export default function TicketPage({
           content: newMessage,
           createdAt: Timestamp.now(),
           isAdmin: false,
+          isRead: false,
         }),
       })
       setNewMessage("")
@@ -113,6 +135,7 @@ export default function TicketPage({
                 <div key={index} className={`p-4 rounded-lg ${message.isAdmin ? "bg-blue-100" : "bg-gray-100"}`}>
                   <p className="text-sm text-gray-600 mb-1">
                     {message.isAdmin ? "Admin" : "Vous"} - {message.createdAt.toDate().toLocaleString()}
+                    {message.isRead ? " (Lu)" : ""}
                   </p>
                   <p>{message.content}</p>
                 </div>

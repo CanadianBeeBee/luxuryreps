@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface Message {
   id: string
   content: string
   createdAt: Timestamp
   isAdmin: boolean
+  isRead: boolean
 }
 
 interface Ticket {
@@ -26,6 +28,7 @@ interface Ticket {
   createdAt: Timestamp
   userId: string
   messages: Message[]
+  lastAdminResponse?: Timestamp
 }
 
 export default function SupportPage() {
@@ -86,6 +89,7 @@ export default function SupportPage() {
             content: message,
             createdAt: Timestamp.now(),
             isAdmin: false,
+            isRead: true,
           },
         ],
       }
@@ -145,7 +149,12 @@ export default function SupportPage() {
                 {tickets.map((ticket) => (
                   <Card key={ticket.id}>
                     <CardHeader>
-                      <CardTitle>{ticket.subject}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle>{ticket.subject}</CardTitle>
+                        {ticket.lastAdminResponse && ticket.messages.some((m) => m.isAdmin && !m.isRead) && (
+                          <Badge variant="secondary">Nouvelle réponse</Badge>
+                        )}
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground mb-2">
