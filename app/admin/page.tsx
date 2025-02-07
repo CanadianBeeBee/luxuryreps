@@ -22,7 +22,7 @@ interface Ticket {
 const isAdmin = (email: string) => email === "admin@admin.com"
 
 export default function AdminPage() {
-  const [, setUser] = useState<{ uid: string; email: string | null } | null>(null)
+  // Removed: const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -30,7 +30,6 @@ export default function AdminPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && isAdmin(user.email || "")) {
-        setUser(user)
         await fetchTickets()
       } else {
         router.push("/login")
