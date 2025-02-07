@@ -27,7 +27,10 @@ interface Ticket {
   messages: Message[]
 }
 
-export default function TicketPage({ params }: { params: { id: string } }) {
+export default function TicketPage({
+  params,
+  searchParams,
+}: { params: { id: string } } & { searchParams: { [key: string]: string | string[] | undefined } }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null)
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [newMessage, setNewMessage] = useState("")
