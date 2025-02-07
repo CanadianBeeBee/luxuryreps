@@ -256,7 +256,7 @@ export default function ClientPage() {
           <div className="bg-secondary/30 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4">Vos Favoris</h3>
             {favoriteProducts.length === 0 ? (
-              <p>Vous n'avez pas encore ajouté de favoris.</p>
+              <p>Vous n avez pas encore ajouté de favoris.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteProducts.map((product) => (
