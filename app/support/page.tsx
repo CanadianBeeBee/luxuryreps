@@ -3,21 +3,29 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
-import { collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore"
+import { collection, addDoc, query, where, getDocs, orderBy, Timestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+
+interface Message {
+  id: string
+  content: string
+  createdAt: Timestamp
+  isAdmin: boolean
+}
 
 interface Ticket {
   id: string
   subject: string
-  message: string
   status: "open" | "closed"
-  createdAt: Date
+  createdAt: Timestamp
   userId: string
+  messages: Message[]
 }
 
 export default function SupportPage() {
@@ -26,7 +34,7 @@ export default function SupportPage() {
   const [message, setMessage] = useState("")
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null) // Added error state
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -68,13 +76,20 @@ export default function SupportPage() {
     if (!user) return
 
     try {
-      await addDoc(collection(db, "tickets"), {
+      const newTicket = {
         subject,
-        message,
         status: "open",
-        createdAt: new Date(),
+        createdAt: Timestamp.now(),
         userId: user.uid,
-      })
+        messages: [
+          {
+            content: message,
+            createdAt: Timestamp.now(),
+            isAdmin: false,
+          },
+        ],
+      }
+      await addDoc(collection(db, "tickets"), newTicket)
       setSubject("")
       setMessage("")
       await fetchTickets(user.uid)
@@ -126,17 +141,24 @@ export default function SupportPage() {
             {tickets.length === 0 ? (
               <p>Vous n avez pas encore de tickets.</p>
             ) : (
-              <ul className="space-y-4">
+              <div className="space-y-4">
                 {tickets.map((ticket) => (
-                  <li key={ticket.id} className="bg-secondary/30 rounded-lg p-4">
-                    <h3 className="font-semibold">{ticket.subject}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Status: {ticket.status === "open" ? "Ouvert" : "Fermé"}
-                    </p>
-                    <p className="text-sm">{ticket.message}</p>
-                  </li>
+                  <Card key={ticket.id}>
+                    <CardHeader>
+                      <CardTitle>{ticket.subject}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Status: {ticket.status === "open" ? "Ouvert" : "Fermé"}
+                      </p>
+                      <p className="text-sm">Dernier message: {ticket.messages[ticket.messages.length - 1].content}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button onClick={() => router.push(`/support/${ticket.id}`)}>Voir le ticket</Button>
+                    </CardFooter>
+                  </Card>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </div>
