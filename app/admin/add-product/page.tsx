@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { collection, doc, setDoc, getDocs } from "firebase/firestore"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,19 +13,8 @@ import { Navigation } from "@/components/navigation"
 import Image from "next/image"
 
 const categories = [
-  "electronic",
-  "jackets",
-  "vests",
-  "pants",
-  "hoodies",
-  "shoes",
-  "sweater",
-  "trackies",
-  "jerseys",
-  "t-Shirts",
-  "shorts",
-  "bags",
-  "hats",
+  "electronic", "jackets", "vests", "pants", "hoodies", "shoes", "sweater",
+  "trackies", "jerseys", "t-Shirts", "shorts", "bags", "hats"
 ]
 
 export default function AddProductPage() {
@@ -36,8 +24,7 @@ export default function AddProductPage() {
   const [description, setDescription] = useState("")
   const [stock, setStock] = useState("")
   const [category, setCategory] = useState("")
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string>("")
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -65,50 +52,29 @@ export default function AddProductPage() {
     fetchProducts()
   }, [])
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setImage(file)
-      setImagePreview(URL.createObjectURL(file))
-    }
-  }
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
       alert("You must be logged in to add a product")
       return
     }
-  
+
     if (!documentId.trim()) {
       alert("Please provide a valid document ID")
       return
     }
-  
+
     if (!category) {
       alert("Please select a category")
       return
     }
-  
+
+    if (!imageUrl.trim()) {
+      alert("Please enter an image URL")
+      return
+    }
+
     try {
-      let imageUrl = ""
-      if (image) {
-        const formData = new FormData()
-        formData.append("file", image)
-  
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        })
-        const data = await response.json()
-  
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to upload image")
-        }
-  
-        imageUrl = data.url
-      }
-  
       await setDoc(doc(db, "products", documentId), {
         name,
         price: Number.parseFloat(price),
@@ -117,7 +83,6 @@ export default function AddProductPage() {
         category,
         imageUrl,
       })
-  
       alert("Product added successfully!")
       setDocumentId("")
       setName("")
@@ -125,14 +90,19 @@ export default function AddProductPage() {
       setDescription("")
       setStock("")
       setCategory("")
-      setImage(null)
-      setImagePreview(null)
+      setImageUrl("")
+
+      const querySnapshot = await getDocs(collection(db, "products"))
+      const products = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name || "No Name",
+      }))
+      setProductList(products)
     } catch (error) {
       console.error("Error adding product: ", error)
       alert("Error adding product")
     }
   }
-  
 
   if (loading) {
     return <div>Loading...</div>
@@ -146,114 +116,44 @@ export default function AddProductPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
       <div className="flex-grow p-8 grid grid-cols-3 gap-8">
-        {/* Form Section */}
         <div className="col-span-2">
           <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <Input id="documentId" value={documentId} onChange={(e) => setDocumentId(e.target.value)} placeholder="Enter a custom document ID" required />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <Input id="price" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required />
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required />
+            <Input id="stock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div>
-              <label htmlFor="documentId" className="block text-sm font-medium mb-1">
-                Document ID
+              <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
+                Image URL
               </label>
               <Input
-                id="documentId"
-                value={documentId}
-                onChange={(e) => setDocumentId(e.target.value)}
-                placeholder="Enter a custom document ID"
+                id="imageUrl"
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Enter the image URL"
                 required
               />
-            </div>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Name
-              </label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div>
-              <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price
-              </label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
-              </label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="stock" className="block text-sm font-medium mb-1">
-                Stock
-              </label>
-              <Input id="stock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required />
-            </div>
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium mb-1">
-                Category
-              </label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label htmlFor="image" className="block text-sm font-medium mb-1">
-                Product Image
-              </label>
-              <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
-              {imagePreview && (
-                <Image
-                  src={imagePreview || "/placeholder.svg"}
-                  alt="Preview"
-                  width={200}
-                  height={200}
-                  className="mt-2 max-w-full h-auto max-h-48 object-contain"
-                />
+              {imageUrl && (
+                <Image src={imageUrl} alt="Uploaded preview" width={200} height={200} className="mt-2 object-contain" />
               )}
             </div>
-            <Button type="submit" className="w-full">
-              Add Product
-            </Button>
+            <Button type="submit" className="w-full">Add Product</Button>
           </form>
-        </div>
-
-        {/* Checker Section */}
-        <div className="p-4 rounded-xl shadow-md">
-          <h2 className="text-2xl font-semibold mb-4">Products List</h2>
-          <div>
-            <label htmlFor="productList" className="block text-sm font-medium mb-1">
-              Existing Products
-            </label>
-            <select id="productList" className="w-full border rounded p-2">
-              {productList.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} ({product.id})
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
     </div>
   )
 }
-
