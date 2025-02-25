@@ -92,7 +92,7 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
               <p className="text-muted-foreground">
                 {isDragActive ? "Déposez l'image ici" : "Glissez et déposez une image, ou cliquez pour sélectionner"}
               </p>
-              {loading && <p className="text-primary mt-2">Chargement de l'image...</p>}
+              {loading && <p className="text-primary mt-2">Chargement de l image...</p>}
             </div>
           </>
         )}
