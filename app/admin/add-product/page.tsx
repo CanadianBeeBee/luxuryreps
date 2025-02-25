@@ -72,32 +72,43 @@ export default function AddProductPage() {
       setImagePreview(URL.createObjectURL(file))
     }
   }
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
       alert("You must be logged in to add a product")
       return
     }
-
+  
     if (!documentId.trim()) {
       alert("Please provide a valid document ID")
       return
     }
-
+  
     if (!category) {
       alert("Please select a category")
       return
     }
-
+  
     try {
       let imageUrl = ""
       if (image) {
-        const imageRef = ref(storage, `products/${image.name}`)
-        await uploadBytes(imageRef, image)
-        imageUrl = await getDownloadURL(imageRef)
+        const formData = new FormData()
+        formData.append("file", image)
+  
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+        const data = await response.json()
+  
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to upload image")
+        }
+  
+        imageUrl = data.url
       }
-
+  
       await setDoc(doc(db, "products", documentId), {
         name,
         price: Number.parseFloat(price),
@@ -106,6 +117,7 @@ export default function AddProductPage() {
         category,
         imageUrl,
       })
+  
       alert("Product added successfully!")
       setDocumentId("")
       setName("")
@@ -115,18 +127,12 @@ export default function AddProductPage() {
       setCategory("")
       setImage(null)
       setImagePreview(null)
-
-      const querySnapshot = await getDocs(collection(db, "products"))
-      const products = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        name: doc.data().name || "No Name",
-      }))
-      setProductList(products)
     } catch (error) {
       console.error("Error adding product: ", error)
       alert("Error adding product")
     }
   }
+  
 
   if (loading) {
     return <div>Loading...</div>
