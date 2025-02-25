@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
 import Image from "next/image"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -19,16 +18,21 @@ interface Product {
   imageUrl: string
 }
 
-export default function ProductPage() {
-  const { id } = useParams()
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function ProductPage({ params }: PageProps) {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (typeof id !== "string") return
-      const docRef = doc(db, "products", id)
+      if (typeof params.id !== "string") return
+      const docRef = doc(db, "products", params.id)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
@@ -40,7 +44,7 @@ export default function ProductPage() {
     }
 
     fetchProduct()
-  }, [id])
+  }, [params.id])
 
   const incrementQuantity = () => {
     if (product && quantity < product.stock) {
@@ -89,8 +93,8 @@ export default function ProductPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="relative">
-            <div className="aspect-square  overflow-hidden rounded-lg">
-              <Image src={product.imageUrl || "/placeholder.svg"} alt={product.name} fill className="borderRadius: '5px'" />
+            <div className="aspect-square overflow-hidden rounded-lg">
+              <Image src={product.imageUrl || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
             </div>
           </div>
 
