@@ -91,16 +91,17 @@ export default function ProductPage({ params }: PageProps) {
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div className="relative">
-            <div className="aspect-square overflow-hidden rounded-lg">
-              <Image 
-              src="https://hzvuv66q54.ufs.sh/f/wo3LDeFVoHX6un6AvNCysPtbn1wHd35AaiXoKOVfLW74DYEI" 
-              alt="prod by x" 
-              fill 
-              className="object-cover" />
-            </div>
-          </div>
+         {/* Product Image */}
+<div className="relative">
+  <div className="aspect-square overflow-hidden rounded-lg">
+    <Image 
+      src="https://hzvuv66q54.ufs.sh/f/wo3LDeFVoHX6un6AvNCysPtbn1wHd35AaiXoKOVfLW74DYEI" 
+      alt="prod by x" 
+      fill 
+      className="object-cover" />
+  </div>
+</div>
+
 
           {/* Product Details */}
           <div className="space-y-6">
