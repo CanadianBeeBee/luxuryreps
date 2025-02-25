@@ -24,6 +24,7 @@ export default function AddProductPage() {
   const [stock, setStock] = useState("")
   const [category, setCategory] = useState("")
   const [imageUrl, setImageUrl] = useState("")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
