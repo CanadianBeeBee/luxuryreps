@@ -1,33 +1,32 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { collection, doc, setDoc, getDocs } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { db, storage } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import Image from "next/image"
 
 const categories = [
-  "Electronic",
-  "Jackets",
-  "Vests",
-  "Pants",
-  "Hoodies",
-  "Shoes",
-  "Sweater",
-  "Trackies",
-  "Jerseys",
-  "T-Shirts",
-  "Shorts",
-  "Bags",
-  "Hats",
+  "electronic",
+  "jackets",
+  "vests",
+  "pants",
+  "hoodies",
+  "shoes",
+  "sweater",
+  "trackies",
+  "jerseys",
+  "t-Shirts",
+  "shorts",
+  "bags",
+  "hats",
 ]
 
 export default function AddProductPage() {
@@ -37,11 +36,11 @@ export default function AddProductPage() {
   const [description, setDescription] = useState("")
   const [stock, setStock] = useState("")
   const [category, setCategory] = useState("")
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -66,6 +65,14 @@ export default function AddProductPage() {
     fetchProducts()
   }, [])
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setImage(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
@@ -86,20 +93,9 @@ export default function AddProductPage() {
     try {
       let imageUrl = ""
       if (image) {
-        const formData = new FormData()
-        formData.append("file", image)
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          },
-        )
-
-        const data = await response.json()
-        imageUrl = data.secure_url
+        const imageRef = ref(storage, `products/${image.name}`)
+        await uploadBytes(imageRef, image)
+        imageUrl = await getDownloadURL(imageRef)
       }
 
       await setDoc(doc(db, "products", documentId), {
@@ -132,14 +128,6 @@ export default function AddProductPage() {
     }
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImage(file)
-      setImagePreview(URL.createObjectURL(file))
-    }
-  }
-
   if (loading) {
     return <div>Loading...</div>
   }
@@ -155,7 +143,7 @@ export default function AddProductPage() {
         {/* Form Section */}
         <div className="col-span-2">
           <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="documentId" className="block text-sm font-medium mb-1">
                 Document ID
@@ -222,12 +210,18 @@ export default function AddProductPage() {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Product Image</label>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="mb-2" />
+              <label htmlFor="image" className="block text-sm font-medium mb-1">
+                Product Image
+              </label>
+              <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
               {imagePreview && (
-                <div>
-                  <Image src={imagePreview || "/placeholder.svg"} alt="Product Preview" width={100} height={100} />
-                </div>
+                <Image
+                  src={imagePreview || "/placeholder.svg"}
+                  alt="Preview"
+                  width={200}
+                  height={200}
+                  className="mt-2 max-w-full h-auto max-h-48 object-contain"
+                />
               )}
             </div>
             <Button type="submit" className="w-full">
@@ -237,13 +231,13 @@ export default function AddProductPage() {
         </div>
 
         {/* Checker Section */}
-        <div className="p-4 rounded-xl bg-secondary/50">
+        <div className="p-4 rounded-xl shadow-md">
           <h2 className="text-2xl font-semibold mb-4">Products List</h2>
           <div>
             <label htmlFor="productList" className="block text-sm font-medium mb-1">
               Existing Products
             </label>
-            <select id="productList" className="w-full border rounded p-2 bg-background">
+            <select id="productList" className="w-full border rounded p-2">
               {productList.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} ({product.id})
