@@ -94,7 +94,11 @@ export default function ProductPage({ params }: PageProps) {
           {/* Product Image */}
           <div className="relative">
             <div className="aspect-square overflow-hidden rounded-lg">
-              <Image src={product.imageUrl || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
+              <Image 
+              src="https://hzvuv66q54.ufs.sh/f/wo3LDeFVoHX6un6AvNCysPtbn1wHd35AaiXoKOVfLW74DYEI" 
+              alt={product.name} 
+              fill 
+              className="object-cover" />
             </div>
           </div>
 
