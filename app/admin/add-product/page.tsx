@@ -37,7 +37,6 @@ export default function AddProductPage() {
   const [description, setDescription] = useState("")
   const [stock, setStock] = useState("")
   const [category, setCategory] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
