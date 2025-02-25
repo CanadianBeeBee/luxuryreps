@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
 import { Navigation } from "@/components/navigation"
-import { ImageUpload } from "@/components/image-upload"
+import Image from "next/image"
 
 const categories = [
   "Electronic",
@@ -41,6 +41,8 @@ export default function AddProductPage() {
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -82,12 +84,25 @@ export default function AddProductPage() {
       return
     }
 
-    if (!imageUrl) {
-      alert("Please upload a product image")
-      return
-    }
-
     try {
+      let imageUrl = ""
+      if (image) {
+        const formData = new FormData()
+        formData.append("file", image)
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        )
+
+        const data = await response.json()
+        imageUrl = data.secure_url
+      }
+
       await setDoc(doc(db, "products", documentId), {
         name,
         price: Number.parseFloat(price),
@@ -103,7 +118,8 @@ export default function AddProductPage() {
       setDescription("")
       setStock("")
       setCategory("")
-      setImageUrl("")
+      setImage(null)
+      setImagePreview(null)
 
       const querySnapshot = await getDocs(collection(db, "products"))
       const products = querySnapshot.docs.map((doc) => ({
@@ -114,6 +130,14 @@ export default function AddProductPage() {
     } catch (error) {
       console.error("Error adding product: ", error)
       alert("Error adding product")
+    }
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImage(file)
+      setImagePreview(URL.createObjectURL(file))
     }
   }
 
@@ -200,7 +224,12 @@ export default function AddProductPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Product Image</label>
-              <ImageUpload value={imageUrl} onChange={(url) => setImageUrl(url)} onRemove={() => setImageUrl("")} />
+              <input type="file" accept="image/*" onChange={handleImageChange} className="mb-2" />
+              {imagePreview && (
+                <div>
+                  <Image src={imagePreview || "/placeholder.svg"} alt="Product Preview" width={100} height={100} />
+                </div>
+              )}
             </div>
             <Button type="submit" className="w-full">
               Add Product

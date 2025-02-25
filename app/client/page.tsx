@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -12,7 +14,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ProductCard } from "@/components/product-card"
-import { Pencil, Save, Package, Truck, HeadphonesIcon } from "lucide-react"
+import { Pencil, Save, Package, Truck, HeadphonesIcon, Camera } from "lucide-react"
 
 interface UserData {
   name: string
@@ -25,6 +27,7 @@ interface UserData {
   }
   favorites: string[]
   role: string
+  profilePicture: string
 }
 
 interface Product {
@@ -49,40 +52,59 @@ export default function ClientPage() {
     postalCode: "",
     city: "",
   })
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        if (isAdmin(user.email || "")) {
-          router.push("/admin/add-product")
-          return
+      try {
+        if (user) {
+          if (isAdmin(user.email || "")) {
+            router.push("/admin/add-product")
+            return
+          }
+          setUser(user)
+          const userDoc = await getDoc(doc(db, "users", user.uid))
+          if (userDoc.exists()) {
+            const data = userDoc.data() as UserData
+            setUserData(data)
+            setNewAddress(data.address || { street: "", number: "", postalCode: "", city: "" })
+            fetchFavoriteProducts(data.favorites || [])
+          } else {
+            console.error("User document does not exist")
+          }
+        } else {
+          router.push("/login")
         }
-        setUser(user)
-        const userDoc = await getDoc(doc(db, "users", user.uid))
-        if (userDoc.exists()) {
-          const data = userDoc.data() as UserData
-          setUserData(data)
-          setNewAddress(data.address)
-          fetchFavoriteProducts(data.favorites)
-        }
-      } else {
-        router.push("/login")
+      } catch (error) {
+        console.error("Error in auth state change:", error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
   }, [router])
 
   const fetchFavoriteProducts = async (favoriteIds: string[]) => {
-    const products = await Promise.all(
-      favoriteIds.map(async (id) => {
-        const productDoc = await getDoc(doc(db, "products", id))
-        return { id, ...productDoc.data() } as Product
-      }),
-    )
-    setFavoriteProducts(products)
+    try {
+      const products = await Promise.all(
+        favoriteIds.map(async (id) => {
+          const productDoc = await getDoc(doc(db, "products", id))
+          if (productDoc.exists()) {
+            return { id, ...productDoc.data() } as Product
+          } else {
+            console.warn(`Product with id ${id} not found`)
+            return null
+          }
+        }),
+      )
+      setFavoriteProducts(products.filter((product): product is Product => product !== null))
+    } catch (error) {
+      console.error("Error fetching favorite products:", error)
+      setFavoriteProducts([])
+    }
   }
 
   const handleUpdateAddress = async () => {
@@ -90,6 +112,35 @@ export default function ClientPage() {
       await updateDoc(doc(db, "users", user.uid), { address: newAddress })
       setUserData({ ...userData, address: newAddress })
       setEditingAddress(false)
+    }
+  }
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0] && user) {
+      setUploadingImage(true)
+      const file = e.target.files[0]
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        )
+
+        const data = await response.json()
+        const downloadURL = data.secure_url
+
+        await updateDoc(doc(db, "users", user.uid), { profilePicture: downloadURL })
+        setUserData((prevData) => (prevData ? { ...prevData, profilePicture: downloadURL } : null))
+      } catch (error) {
+        console.error("Error uploading profile picture:", error)
+      }
+      setUploadingImage(false)
     }
   }
 
@@ -107,9 +158,30 @@ export default function ClientPage() {
       <main className="flex-grow flex">
         {/* Sidebar */}
         <div className="w-1/4 bg-secondary/50 p-6 flex flex-col items-center">
-          <div className="w-32 h-32 rounded-full bg-muted mb-4 overflow-hidden">
-            <Image src="/default-avatar.png" alt="Profile" width={128} height={128} className="object-cover" />
+          <div className="w-32 h-32 rounded-full bg-muted mb-4 overflow-hidden relative group">
+            <Image
+              src={userData.profilePicture || "/placeholder.svg"}
+              alt="Profile"
+              width={128}
+              height={128}
+              className="object-cover"
+            />
+            <div
+              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera className="w-8 h-8 text-white" />
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleProfilePictureUpload}
+              disabled={uploadingImage}
+            />
           </div>
+          {uploadingImage && <p className="text-sm text-muted-foreground mb-2">Uploading...</p>}
           <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
           <p className="text-muted-foreground mb-4">{user.email}</p>
           <p className="text-sm mb-6">
@@ -174,17 +246,21 @@ export default function ClientPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <p>
-                  {userData.address.number} {userData.address.street}
-                </p>
-                <p>
-                  {userData.address.postalCode} {userData.address.city}
-                </p>
-                <Button variant="ghost" onClick={() => setEditingAddress(true)}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Modifier
-                </Button>
+              <div>
+                {userData.address && (
+                  <div className="space-y-2">
+                    <p>
+                      {userData.address.number} {userData.address.street}
+                    </p>
+                    <p>
+                      {userData.address.postalCode} {userData.address.city}
+                    </p>
+                    <Button variant="ghost" onClick={() => setEditingAddress(true)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Modifier
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -193,7 +269,7 @@ export default function ClientPage() {
           <div className="bg-secondary/30 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4">Vos Favoris</h3>
             {favoriteProducts.length === 0 ? (
-              <p>Vous n avez pas encore ajouté de favoris, xxx .</p>
+              <p>Vous n'avez pas encore ajouté de favoris.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteProducts.map((product) => (
