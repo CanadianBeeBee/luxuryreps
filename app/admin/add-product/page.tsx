@@ -210,9 +210,19 @@ export default function AddProductPage() {
               </Select>
             </div>
             <div>
-            <label htmlFor="image" className="block text-sm font-medium mb-1">
-
-            </label>
+              <label htmlFor="image" className="block text-sm font-medium mb-1">
+                Product Image
+              </label>
+              <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
+              {imagePreview && (
+                <Image
+                  src={imagePreview || "/placeholder.svg"}
+                  alt="Preview"
+                  width={200}
+                  height={200}
+                  className="mt-2 max-w-full h-auto max-h-48 object-contain"
+                />
+              )}
             </div>
             <Button type="submit" className="w-full">
               Add Product
