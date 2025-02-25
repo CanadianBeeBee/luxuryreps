@@ -96,7 +96,7 @@ export default function ProductPage({ params }: PageProps) {
             <div className="aspect-square overflow-hidden rounded-lg">
               <Image 
               src="https://hzvuv66q54.ufs.sh/f/wo3LDeFVoHX6un6AvNCysPtbn1wHd35AaiXoKOVfLW74DYEI" 
-              alt={product.name} 
+              alt="prod by x" 
               fill 
               className="object-cover" />
             </div>
