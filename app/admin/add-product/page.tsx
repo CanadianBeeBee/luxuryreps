@@ -13,8 +13,7 @@ import { Navigation } from "@/components/navigation"
 import Image from "next/image"
 
 const categories = [
-  "electronic", "jackets", "vests", "pants", "hoodies", "shoes", "sweater",
-  "trackies", "jerseys", "t-Shirts", "shorts", "bags", "hats"
+  "electronic", "jackets", "vests", "pants", "hoodies", "shoes", "sweater", "trackies", "jerseys", "t-Shirts", "shorts", "bags", "hats",
 ]
 
 export default function AddProductPage() {
@@ -24,7 +23,7 @@ export default function AddProductPage() {
   const [description, setDescription] = useState("")
   const [stock, setStock] = useState("")
   const [category, setCategory] = useState("")
-  const [imageUrl, setImageUrl] = useState<string>("")
+  const [imageUrl, setImageUrl] = useState("")
   const [productList, setProductList] = useState<{ id: string; name: string }[]>([])
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -48,7 +47,6 @@ export default function AddProductPage() {
         console.error("Error fetching products: ", error)
       }
     }
-
     fetchProducts()
   }, [])
 
@@ -58,22 +56,14 @@ export default function AddProductPage() {
       alert("You must be logged in to add a product")
       return
     }
-
     if (!documentId.trim()) {
       alert("Please provide a valid document ID")
       return
     }
-
     if (!category) {
       alert("Please select a category")
       return
     }
-
-    if (!imageUrl.trim()) {
-      alert("Please enter an image URL")
-      return
-    }
-
     try {
       await setDoc(doc(db, "products", documentId), {
         name,
@@ -91,13 +81,6 @@ export default function AddProductPage() {
       setStock("")
       setCategory("")
       setImageUrl("")
-
-      const querySnapshot = await getDocs(collection(db, "products"))
-      const products = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        name: doc.data().name || "No Name",
-      }))
-      setProductList(products)
     } catch (error) {
       console.error("Error adding product: ", error)
       alert("Error adding product")
@@ -107,7 +90,6 @@ export default function AddProductPage() {
   if (loading) {
     return <div>Loading...</div>
   }
-
   if (!user) {
     return null
   }
@@ -134,22 +116,8 @@ export default function AddProductPage() {
                 ))}
               </SelectContent>
             </Select>
-            <div>
-              <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
-                Image URL
-              </label>
-              <Input
-                id="imageUrl"
-                type="text"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Enter the image URL"
-                required
-              />
-              {imageUrl && (
-                <Image src={imageUrl} alt="Uploaded preview" width={200} height={200} className="mt-2 object-contain" />
-              )}
-            </div>
+            <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Enter image URL from UploadThing" required />
+            {imageUrl && <Image src={imageUrl} alt="Preview" width={200} height={200} className="mt-2 max-w-full h-auto max-h-48 object-contain" />}
             <Button type="submit" className="w-full">Add Product</Button>
           </form>
         </div>
