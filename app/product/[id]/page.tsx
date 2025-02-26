@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -18,16 +19,16 @@ interface Product {
   imageUrl: string
 }
 
-
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage() {
+  const { id } = useParams()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (typeof params.id !== "string") return
-      const docRef = doc(db, "products", params.id)
+      if (typeof id !== "string") return
+      const docRef = doc(db, "products", id)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
@@ -39,7 +40,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     }
 
     fetchProduct()
-  }, [params.id])
+  }, [id])
 
   const incrementQuantity = () => {
     if (product && quantity < product.stock) {
@@ -86,17 +87,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8">
-         {/* Product Image */}
-<div className="relative">
-  <div className="aspect-square overflow-hidden rounded-lg">
-    <Image 
-      src="/airpodsmax.webp" 
-      alt="prod by x" 
-      fill 
-      className="object-cover" />
-  </div>
-</div>
-
+          {/* Product Image */}
+          <div className="relative">
+            <div className="aspect-square  overflow-hidden rounded-lg">
+              <Image src={product.imageUrl || "/placeholder.svg"} alt={product.name} fill className="borderRadius: '5px'" />
+            </div>
+          </div>
 
           {/* Product Details */}
           <div className="space-y-6">
