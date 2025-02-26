@@ -95,7 +95,7 @@ export default function ProductPage({ params }: PageProps) {
 <div className="relative">
   <div className="aspect-square overflow-hidden rounded-lg">
     <Image 
-      src="https://hzvuv66q54.ufs.sh/f/wo3LDeFVoHX6un6AvNCysPtbn1wHd35AaiXoKOVfLW74DYEI" 
+      src="/airpodsmax.webp" 
       alt="prod by x" 
       fill 
       className="object-cover" />
