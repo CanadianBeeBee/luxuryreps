@@ -18,11 +18,6 @@ interface Product {
   imageUrl: string
 }
 
-interface PageProps {
-  params: {
-    id: string
-  }
-}
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
