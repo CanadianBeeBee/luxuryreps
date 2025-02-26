@@ -24,7 +24,7 @@ interface PageProps {
   }
 }
 
-export default function ProductPage({ params }: PageProps) {
+export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
