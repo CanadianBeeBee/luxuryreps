@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Navigation } from "@/components/navigation"
@@ -12,13 +13,16 @@ interface Ticket {
   userId: string
 }
 
-interface PageProps {
-  params: {
-    id: string
-  }
+type Props = {
+  params: { id: string }
 }
 
-export default async function SupportTicketPage({ params }: PageProps) {
+export const metadata: Metadata = {
+  title: "Support Ticket",
+  description: "View your support ticket details",
+}
+
+export default async function SupportTicketPage({ params }: Props) {
   const ticketDoc = await getDoc(doc(db, "tickets", params.id))
 
   if (!ticketDoc.exists()) {
