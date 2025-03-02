@@ -232,7 +232,7 @@ export default function AddProductPage() {
 
         {/* Checker Section */}
         <div className="p-4 rounded-xl shadow-md">
-          <h2 className="text-2xl font-semibold mb-4">Products List</h2>
+          <h2 className="text-2xl font-semibold mb-4">Products xxxx List</h2>
           <div>
             <label htmlFor="productList" className="block text-sm font-medium mb-1">
               Existing Products
