@@ -1,10 +1,9 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { collection, doc, setDoc, getDocs } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { db, storage } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -94,24 +93,9 @@ export default function AddProductPage() {
     try {
       let imageUrl = ""
       if (image) {
-        const formData = new FormData()
-        formData.append("file", image)
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error("Failed to upload image")
-        }
-
-        const data = await response.json()
-        imageUrl = data.secure_url
+        const imageRef = ref(storage, `products/${Date.now()}_${image.name}`)
+        await uploadBytes(imageRef, image)
+        imageUrl = await getDownloadURL(imageRef)
       }
 
       await setDoc(doc(db, "products", documentId), {
@@ -266,4 +250,3 @@ export default function AddProductPage() {
     </div>
   )
 }
-
