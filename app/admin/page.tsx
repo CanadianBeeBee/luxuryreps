@@ -164,7 +164,7 @@ export default function AddProductPage() {
       <div className="flex-grow p-8 grid grid-cols-3 gap-8">
         {/* Form Section */}
         <div className="col-span-2">
-          <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
+          <h1 className="text-3xl font-bold mb-8">Add a New Product</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="documentId" className="block text-sm font-medium mb-1">
