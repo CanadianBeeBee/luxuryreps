@@ -142,7 +142,7 @@ export default function AddProductPage() {
       <div className="flex-grow p-8 grid grid-cols-3 gap-8">
         {/* Form Section */}
         <div className="col-span-2">
-          <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
+          <h1 className="text-3xl font-bold mb-8">Add s New Product</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="documentId" className="block text-sm font-medium mb-1">
@@ -232,7 +232,7 @@ export default function AddProductPage() {
 
         {/* Checker Section */}
         <div className="p-4 rounded-xl shadow-md">
-          <h2 className="text-2xl font-semibold mb-4">Products xxxx List</h2>
+          <h2 className="text-2xl font-semibold mb-4">Products List</h2>
           <div>
             <label htmlFor="productList" className="block text-sm font-medium mb-1">
               Existing Products
