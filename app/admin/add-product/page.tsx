@@ -1,9 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { collection, doc, setDoc, getDocs } from "firebase/firestore"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -93,9 +94,24 @@ export default function AddProductPage() {
     try {
       let imageUrl = ""
       if (image) {
-        const imageRef = ref(storage, `products/${image.name}`)
-        await uploadBytes(imageRef, image)
-        imageUrl = await getDownloadURL(imageRef)
+        const formData = new FormData()
+        formData.append("file", image)
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "")
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        )
+
+        if (!response.ok) {
+          throw new Error("Failed to upload image")
+        }
+
+        const data = await response.json()
+        imageUrl = data.secure_url
       }
 
       await setDoc(doc(db, "products", documentId), {
@@ -142,7 +158,7 @@ export default function AddProductPage() {
       <div className="flex-grow p-8 grid grid-cols-3 gap-8">
         {/* Form Section */}
         <div className="col-span-2">
-          <h1 className="text-3xl font-bold mb-8">Add s New Product</h1>
+          <h1 className="text-3xl font-bold mb-8">Add a New Product</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="documentId" className="block text-sm font-medium mb-1">
